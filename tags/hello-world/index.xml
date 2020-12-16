@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>hello world on Just Works</title>
+    <link>/tags/hello-world/</link>
+    <description>Recent content in hello world on Just Works</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sat, 13 Jun 2020 00:00:00 +0000</lastBuildDate><atom:link href="/tags/hello-world/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Hello world</title>
+      <link>/posts/hello_world/</link>
+      <pubDate>Sat, 13 Jun 2020 00:00:00 +0000</pubDate>
+      
+      <guid>/posts/hello_world/</guid>
+      <description>This is my first post on GitHub Pages. This personal blog is powered by Colorie - Jekyll theme, which is an elegant theme.
+Since I&amp;rsquo;m not a native English speaker, there are supposed to be some mistakes in linguistics, such as grammar or spell mistakes, though I&amp;rsquo;ve struggled with Online Translation when writing.
+For more detailed information please refer to the ABOUT page. In short, these blogs are taken down for reviewing and sharing, hoping to be helpful.</description>
+    </item>
+    
+  </channel>
+</rss>
