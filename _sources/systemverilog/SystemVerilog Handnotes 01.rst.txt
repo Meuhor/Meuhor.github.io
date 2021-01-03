@@ -1,0 +1,154 @@
+.. include:: ../common_roles/common.rst
+
+
+================================
+System Verilog Handnotes 01 [#]_
+================================
+
+笔记
+######
+
+验证导论
+----------
+
+与硬件描述语言相比(HDL), 硬件验证语言(HVL)具有一些典型的性质: 
+    #. 受约束的随机激励生成
+    #. 功能覆盖率
+    #. 更高层次的结构, 尤其是面向对象的编程
+    #. 多线程及线程的通信
+    #. 支持HDL数据类型, 例如Verilog的四状态数值
+    #. 集成了事件仿真器, 便于对设计施加控制
+
+测试平台进行测试的步骤: 
+    #. 产生激励
+    #. 把激励施加到DUT上
+    #. 捕捉响应
+    #. 检验正确性
+    #. 对照整个验证目标测算进展情况
+
+数据类型
+-----------
+
+变量类型
++++++++++
+
+- logic: logic类型不能有多个结构性驱动
+- 双状态数据类型
+    - bit: 无符号, 单比特
+    - int: 有符号, 32比特
+    - byte: 有符号, 8比特
+    - shortint: 有符号, 16比特
+    - longint: 有符号, 64比特
+    - real: 有符号, 双精度浮点数
+- 四状态数据类型
+    - integer: 有符号, 32比特
+    - time: 无符号, 64比特
+- 四状态到二状态转换时, Z 和 X 会被转换成0或1, 适用 $isunknown(expression) 可以在表达式的任意位出行X或Z时返回1
+
+数组
++++++++
+
+- 定宽数组
+    .. code-block:: systemverilog
+    
+        int temp[15:0]; // 16个 int, temp[15], ..., temp[0]
+        int cstyle_temp[16]; // 16个int, cstyle_temp[15], ..., cstyle_temp[0], cstyle, 故等同于 temp[0:15]
+        int array[7:0][3:0]; // 32个int, 8行4列
+        int cstyle_array[8][4]; // 32个int, 8行4列, cstyle, 故等同于 array[0:7][0:3]
+    
+- 对于数组, 若下标访问越界, 则会给出一个默认值, 四状态返回X, 双状态返回0. 线网在未驱动的情况下, 输出时Z
+- 很多 SystemVerilog 仿真器在存放数组元素时使用32比特的字边界, 所以 byte, shortint, int, 存放在一个字中, longint 存放在两个字中. 非压缩 (非合并) 数组中, 字的低位用来存放数据, 例如
+    .. code-block:: systemverilog
+    
+        bit [7:0] b_unpack[3];
+    
+    +-------------+-----+-----+-----+-----------------+
+    | b_unpack[0] | ... | ... | ... | 7 6 5 4 3 2 1 0 |
+    +-------------+-----+-----+-----+-----------------+
+    | b_unpack[1] | ... | ... | ... | 7 6 5 4 3 2 1 0 |
+    +-------------+-----+-----+-----+-----------------+
+    | b_unpack[2] | ... | ... | ... | 7 6 5 4 3 2 1 0 |
+    +-------------+-----+-----+-----+-----------------+
+
+- 对于四值类型, 仿真器通常使用两个或以上 **连续** 的字来存放, 故比存放双状态多一倍的空间
+- 数组初始化
+    .. code-block:: systemverilog
+    
+        int ascend[4] = '{0, 1, 2, 3}; // int ascend[0:3];
+        int descend[5]; // int descend[0: 4];
+    
+        descend = '{4, 3, 2, 1, 0};
+        descend[0:2] = '{5, 6, 7};
+        ascend = '{4{8}}; // {8, 8, 8, 8}
+        descend = '{9, 8, default : 1}; // {9, 8, 1, 1, 1} 
+- for 和 foreach
+    .. code-block:: systemverilog
+
+        initial begin
+            bit [31:0] src[5], dst[5];
+            for (int i = 0; i < $size(src); i++) // i 被声明为 for 循环内部变量
+                src[i] = i;
+            foreach (dst[j]) // j 将被自动声明, j 仅在 foreach 循环内有效
+                dst[j] = src[j] * 2;
+        end
+
+        int md[2][3] = '{'{0, 1, 2}, '{3, 4, 5}};
+        initial begin
+            $display("Initial value:");
+            foreach (md[i, j]) // 注意[i, j], 而非[i][j]
+                $display("md[%0d][%0d] = %0d", i, j, md[i][j]);
+
+        end
+
+- foreach 的遍历次序与数组声明时的大小端次序一致
+    .. code-block:: systemverilog
+
+        int f[5];
+        int rev[6:2];
+        initial begin
+            foreach (f[i])
+                f[i] = i;
+            // same as
+            for (int i = 0; i <= 4; i++)
+                f[i] = i;
+            foreach (rev[i]) 
+                rev[i] = i;
+            // same as
+            for (int i = 6; i >= 2; i--)
+                rev[i] = i;
+        end
+
+- 对于多维数组 md[2][3], foreach[i]用于遍历行, 而 foreach[, j]用于遍历列
+- 数组的复制和比较: 数组可以作为一个整体复制给另一个数组, 也可以用于比较但仅限于 **相等** 或 **不等**
+- 同时使用位下标和数组下标
+    .. code-block:: systemverilog
+
+        initial begin
+            bit [31:0] src[5] = '{5{5}};
+            $displayb (src[0],, // 'b101或'd5
+                       src[0][0],, // 'b1
+                       src[0][2:1], // 'b10
+                      );
+        
+        
+
+                
+
+        
+
+
+
+问题
+######
+
+数据类型
+-----------
+
+变量类型
++++++++++
+
+#. 四状态到二状态转换时, Z和X会被转换成0或1, 具体规则
+
+.. footnotes
+.. [#] 《SystemVerilog验证测试平台编写指南》
+

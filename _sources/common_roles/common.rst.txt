@@ -1,0 +1,22 @@
+.. Common used roles
+
+.. role:: del
+    :class: strike
+
+.. |check| raw:: html
+
+    <input checked=""  type="checkbox">
+
+.. |check_| raw:: html
+
+    <input checked=""  disabled="" type="checkbox">
+
+.. |uncheck| raw:: html
+
+    <input type="checkbox">
+
+.. |uncheck_| raw:: html
+
+    <input disabled="" type="checkbox">
+
+
