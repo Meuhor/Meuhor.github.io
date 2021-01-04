@@ -90,8 +90,8 @@
 <li class="toctree-l4"><a class="reference internal" href="#id4">数据类型</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#id7">问题</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#id8">数据类型</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id12">问题</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id13">数据类型</a></li>
 </ul>
 </li>
 </ul>
@@ -166,7 +166,7 @@
            <div itemprop="articleBody">
             
   <div class="section" id="system-verilog-handnotes-01">
-<h1>System Verilog Handnotes 01 <a class="footnote-reference brackets" href="#id10" id="id1">1</a><a class="headerlink" href="#system-verilog-handnotes-01" title="Permalink to this headline">¶</a></h1>
+<h1>System Verilog Handnotes 01 <a class="footnote-reference brackets" href="#id15" id="id1">1</a><a class="headerlink" href="#system-verilog-handnotes-01" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="id2">
 <h2>笔记<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="id3">
@@ -234,6 +234,8 @@
 </dl>
 </li>
 <li><p>对于数组, 若下标访问越界, 则会给出一个默认值, 四状态返回X, 双状态返回0. 线网在未驱动的情况下, 输出时Z</p></li>
+</ul>
+<ul id="id7">
 <li><dl>
 <dt>很多 SystemVerilog 仿真器在存放数组元素时使用32比特的字边界, 所以 byte, shortint, int, 存放在一个字中, longint 存放在两个字中. 非压缩 (非合并) 数组中, 字的低位用来存放数据, 例如</dt><dd><div class="highlight-systemverilog notranslate"><div class="highlight"><pre><span></span><span class="kt">bit</span> <span class="p">[</span><span class="mi">7</span><span class="o">:</span><span class="mi">0</span><span class="p">]</span> <span class="n">b_unpack</span><span class="p">[</span><span class="mi">3</span><span class="p">];</span>
 </pre></div>
@@ -341,20 +343,180 @@
 </li>
 </ul>
 </div>
-</div>
-</div>
-<div class="section" id="id7">
-<h2>问题<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="id8">
-<h3>数据类型<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
+<h4>压缩数组<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h4>
+<ul>
+<li><p>与 <a class="reference internal" href="#id7"><span class="std std-ref">非压缩数组</span></a> 不同, 仿真器一般用连续的的比特来存放压缩数组</p></li>
+<li><p>压缩数组必须使用 [msb:lsb] 的形式定义位宽, 其位宽作为数据类型的一部分, 在变量名前指定</p>
+<blockquote>
+<div><div class="highlight-systemverilog notranslate"><div class="highlight"><pre><span></span><span class="kt">bit</span> <span class="n">bytes0</span> <span class="p">[</span><span class="mi">4</span><span class="p">][</span><span class="mi">8</span><span class="p">];</span> <span class="c1">// 非压缩数组</span>
+<span class="kt">bit</span> <span class="n">bytes1</span> <span class="p">[</span><span class="mi">3</span><span class="o">:</span><span class="mi">0</span><span class="p">][</span><span class="mi">7</span><span class="o">:</span><span class="mi">0</span><span class="p">];</span> <span class="c1">// 非压缩数组</span>
+<span class="kt">bit</span> <span class="p">[</span><span class="mi">7</span><span class="o">:</span><span class="mi">0</span><span class="p">]</span> <span class="n">bytes2</span><span class="p">[</span><span class="mi">3</span><span class="o">:</span><span class="mi">0</span><span class="p">];</span> <span class="c1">// 非压缩数组</span>
+
+<span class="kt">bit</span> <span class="p">[</span><span class="mi">3</span><span class="o">:</span><span class="mi">0</span><span class="p">][</span><span class="mi">7</span><span class="o">:</span><span class="mi">0</span><span class="p">]</span> <span class="n">bytes3</span><span class="p">;</span> <span class="c1">// 压缩数组, 4个字节组成的32比特</span>
+
+<span class="kt">bit</span> <span class="p">[</span><span class="mi">3</span><span class="o">:</span><span class="mi">0</span><span class="p">][</span><span class="mi">7</span><span class="o">:</span><span class="mi">0</span><span class="p">]</span> <span class="n">barray</span><span class="p">[</span><span class="mi">3</span><span class="p">];</span> <span class="c1">// 压缩数组和非压缩数组混用, 表示3个压缩数组</span>
+</pre></div>
+</div>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>bytes3[3]</p></td>
+<td><p>bytes3[2]</p></td>
+<td><p>bytes3[1]</p></td>
+<td><p>bytes3[0]</p></td>
+</tr>
+<tr class="row-even"><td><p>7 6 5 4 3 2 1 0</p></td>
+<td><p>7 6 5 4 3 2 1 0</p></td>
+<td><p>7 6 5 4 3 2 1 0</p></td>
+<td><p>7 6 5 4 3 2 1 0</p></td>
+</tr>
+</tbody>
+</table>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 14%" />
+<col style="width: 22%" />
+<col style="width: 22%" />
+<col style="width: 22%" />
+<col style="width: 22%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td></td>
+<td><p>barray[i][3]</p></td>
+<td><p>barray[i][2]</p></td>
+<td><p>barray[i][1]</p></td>
+<td><p>barray[i][0]</p></td>
+</tr>
+<tr class="row-even"><td><p>barray[0]</p></td>
+<td><p>7 6 5 4 3 2 1 0</p></td>
+<td><p>7 6 5 4 3 2 1 0</p></td>
+<td><p>7 6 5 4 3 2 1 0</p></td>
+<td><p>7 6 5 4 3 2 1 0</p></td>
+</tr>
+<tr class="row-odd"><td><p>barray[1]</p></td>
+<td><p>7 6 5 4 3 2 1 0</p></td>
+<td><p>7 6 5 4 3 2 1 0</p></td>
+<td><p>7 6 5 4 3 2 1 0</p></td>
+<td><p>7 6 5 4 3 2 1 0</p></td>
+</tr>
+<tr class="row-even"><td><p>barray[2]</p></td>
+<td><p>7 6 5 4 3 2 1 0</p></td>
+<td><p>7 6 5 4 3 2 1 0</p></td>
+<td><p>7 6 5 4 3 2 1 0</p></td>
+<td><p>7 6 5 4 3 2 1 0</p></td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</li>
+<li><dl>
+<dt>&#64;操作符只能用于标量和压缩数组</dt><dd><div class="highlight-systemverilog notranslate"><div class="highlight"><pre><span></span><span class="kt">bit</span> <span class="p">[</span><span class="mi">3</span><span class="o">:</span><span class="mi">0</span><span class="p">][</span><span class="mi">7</span><span class="o">:</span><span class="mi">0</span><span class="p">]</span> <span class="n">bytes</span><span class="p">;</span> <span class="c1">// 压缩数组, 4个字节组成的32比特</span>
+<span class="k">always</span> <span class="p">@(</span><span class="n">bytes</span><span class="p">)</span> <span class="k">begin</span>
+    <span class="c1">// some code</span>
+<span class="k">end</span>
+
+<span class="kt">bit</span> <span class="p">[</span><span class="mi">3</span><span class="o">:</span><span class="mi">0</span><span class="p">][</span><span class="mi">7</span><span class="o">:</span><span class="mi">0</span><span class="p">]</span> <span class="n">barray</span><span class="p">[</span><span class="mi">3</span><span class="p">];</span> <span class="c1">// 压缩数组和非压缩数组混用, 表示3个压缩数组</span>
+<span class="k">always</span> <span class="p">@(</span><span class="n">barray</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="k">or</span> <span class="n">barray</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">or</span> <span class="n">barray</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">begin</span>
+    <span class="c1">// some code</span>
+<span class="k">end</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</li>
+</ul>
+</div>
 <div class="section" id="id9">
-<h4>变量类型<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h4>
+<h4>动态数组<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h4>
+<blockquote>
+<div><div class="highlight-systemverilog notranslate" id="new"><div class="highlight"><pre><span></span><span class="kt">int</span> <span class="n">dyn</span><span class="p">[],</span> <span class="n">d2</span><span class="p">[];</span>
+<span class="k">initial</span> <span class="k">begin</span>
+    <span class="n">dyn</span> <span class="o">=</span> <span class="k">new</span><span class="p">[</span><span class="mi">5</span><span class="p">];</span> <span class="c1">// 分配5个元素</span>
+    <span class="k">foreach</span> <span class="p">(</span><span class="n">dyn</span><span class="p">[</span><span class="n">j</span><span class="p">])</span> <span class="n">dyn</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">j</span><span class="p">;</span> <span class="c1">// 对元素进行初始化</span>
+    <span class="n">d2</span> <span class="o">=</span> <span class="n">dyn</span><span class="p">;</span> <span class="c1">// 复制一个动态数组, 这里非显示的使用了 new[], 为 d2 分配了元素, d2 与 dyn 是独立的</span>
+    <span class="n">d2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span> <span class="c1">// 修改d2的部分值</span>
+    <span class="p">$</span><span class="n">display</span> <span class="p">(</span><span class="n">dyn</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">d2</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span> <span class="c1">// 量值不同, 印证 d2 与 dyn 独立</span>
+    <span class="n">dyn</span> <span class="o">=</span> <span class="k">new</span><span class="p">[</span><span class="mi">20</span><span class="p">](</span><span class="n">dyn</span><span class="p">);</span> <span class="c1">// 为 dyn 重新分配20个元素, 并将原 dyn 的元素赋值给 dyn 的前5个元素</span>
+    <span class="n">dyn</span> <span class="o">=</span> <span class="k">new</span><span class="p">[</span><span class="mi">100</span><span class="p">];</span> <span class="c1">// 为 dyn 重新分配100个元素</span>
+    <span class="n">dyn</span><span class="p">.</span><span class="n">delete</span><span class="p">();</span> <span class="c1">// 删除 dyn 的所有元素</span>
+<span class="k">end</span>
+
+<span class="kt">bit</span> <span class="p">[</span><span class="mi">7</span><span class="o">:</span><span class="mi">0</span><span class="p">]</span> <span class="n">mask</span><span class="p">[]</span> <span class="o">=</span> <span class="p">&#39;{</span><span class="mb">8&#39;b0000_0000</span><span class="p">,</span> <span class="mb">8&#39;b0000_0001</span><span class="p">};</span> <span class="c1">// c style</span>
+</pre></div>
+</div>
+</div></blockquote>
+</div>
+<div class="section" id="id11">
+<h4>队列 <a class="footnote-reference brackets" href="#id16" id="id10">2</a><a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h4>
+<ul class="simple">
+<li><p>队列下标使用 [$] 表示, 元素编号为0到$</p></li>
+<li><p>不要对队列使用 new[]</p></li>
+</ul>
+<blockquote id="pop-front-pop-back">
+<div><div class="highlight-systemverilog notranslate"><div class="highlight"><pre><span></span><span class="kt">int</span> <span class="n">j</span><span class="p">,</span> <span class="n">q2</span><span class="p">[$]</span> <span class="o">=</span> <span class="p">{</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">},</span> <span class="n">q</span><span class="p">[$]</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">};</span> <span class="c1">// 队列初始化不使用&#39;{}而使用{}</span>
+<span class="k">initial</span> <span class="k">begin</span>
+    <span class="n">q</span><span class="p">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">j</span><span class="p">);</span> <span class="c1">// {0, 1, 2, 5} 在第1个元素前插入 j, 或在第0个元素后插入 j, 或使 j 成为第1个元素</span>
+    <span class="n">q</span><span class="p">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">q2</span><span class="p">);</span> <span class="c1">// {0, 1, 2, 3, 4, 5} 在第3个元素前插入队列 q2, **并非所有的编译器均支持这种操作**</span>
+    <span class="n">q</span><span class="p">.</span><span class="n">delete</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span> <span class="c1">// {0, 2, 3, 4, 5} 删除第一个元素</span>
+    <span class="c1">// 下面的操作执行速度很快</span>
+    <span class="n">q</span><span class="p">.</span><span class="n">push_front</span><span class="p">(</span><span class="mi">6</span><span class="p">);</span> <span class="c1">// {6, 0, 2, 3, 4, 5} 在队列前插入</span>
+    <span class="n">j</span> <span class="o">=</span> <span class="n">q</span><span class="p">.</span><span class="n">pop_back</span><span class="p">;</span> <span class="c1">// {6, 0, 2, 3, 4} j = 5</span>
+    <span class="n">q</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="mi">8</span><span class="p">);</span> <span class="c1">// {6, 0, 2, 3, 4, 8} 在队列尾插入</span>
+    <span class="n">j</span> <span class="o">=</span> <span class="n">q</span><span class="p">.</span><span class="n">pop_front</span><span class="p">;</span> <span class="c1">// {0, 2, 3, 4, 8} j = 6</span>
+    <span class="k">foreach</span> <span class="p">(</span><span class="n">q</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="p">$</span><span class="n">display</span><span class="p">(</span><span class="n">q</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
+    <span class="n">q</span><span class="p">.</span><span class="n">delete</span><span class="p">();</span> <span class="c1">// 删除整个队列</span>
+<span class="k">end</span>
+</pre></div>
+</div>
+</div></blockquote>
+<ul>
+<li><p>使用 [$:2] 或 [2:$] 的方式来访问队列</p>
+<blockquote>
+<div><div class="highlight-systemverilog notranslate"><div class="highlight"><pre><span></span><span class="kt">int</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">q2</span><span class="p">[$]</span> <span class="o">=</span> <span class="p">{</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">},</span> <span class="n">q</span><span class="p">[$]</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">};</span>
+<span class="k">initial</span> <span class="k">begin</span>
+    <span class="n">q</span> <span class="o">=</span> <span class="p">{</span><span class="n">q</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">j</span><span class="p">,</span> <span class="n">q</span><span class="p">[</span><span class="mi">1</span><span class="o">:</span><span class="p">$]};</span> <span class="c1">// {0, 1, 2, 5}</span>
+    <span class="n">q</span> <span class="o">=</span> <span class="p">{</span><span class="n">q</span><span class="p">[</span><span class="mi">0</span><span class="o">:</span><span class="mi">2</span><span class="p">],</span> <span class="n">q2</span><span class="p">,</span> <span class="n">q</span><span class="p">[</span><span class="mi">3</span><span class="o">:</span><span class="p">$]};</span> <span class="c1">// {0, 1, 2, 3, 4, 5}</span>
+    <span class="n">q</span> <span class="o">=</span> <span class="p">{</span><span class="n">q</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">q</span><span class="p">[</span><span class="mi">2</span><span class="o">:</span><span class="p">$]};</span> <span class="c1">// {0, 2, 3, 4, 5}</span>
+    <span class="c1">// 下面的操作执行速度很快</span>
+    <span class="n">q</span> <span class="o">=</span> <span class="p">{</span><span class="mi">6</span><span class="p">,</span> <span class="n">q</span><span class="p">};</span> <span class="c1">// {6, 0, 2, 3, 4, 5}</span>
+    <span class="n">j</span> <span class="o">=</span> <span class="n">q</span><span class="p">[$];</span> <span class="c1">// j = 5</span>
+    <span class="n">q</span> <span class="o">=</span> <span class="n">q</span><span class="p">[</span><span class="mi">0</span><span class="o">:</span><span class="p">$</span><span class="o">-</span><span class="mi">1</span><span class="p">];</span> <span class="c1">// {6, 0, 2, 3, 4}</span>
+    <span class="n">q</span> <span class="o">=</span> <span class="p">{</span><span class="n">q</span><span class="p">,</span> <span class="mi">8</span><span class="p">};</span> <span class="c1">// {6, 0, 2, 3, 4, 8}</span>
+    <span class="n">j</span> <span class="o">=</span> <span class="n">q</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span> <span class="c1">// j = 6</span>
+    <span class="n">q</span> <span class="o">=</span> <span class="n">q</span><span class="p">[</span><span class="mi">1</span><span class="o">:</span><span class="p">$];</span> <span class="p">{</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">8</span><span class="p">}</span>
+    <span class="n">q</span> <span class="o">=</span> <span class="p">{};</span> <span class="c1">// q.delete();</span>
+<span class="k">end</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="section" id="id12">
+<h2>问题<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id13">
+<h3>数据类型<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id14">
+<h4>变量类型<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h4>
 <ol class="arabic simple">
 <li><p>四状态到二状态转换时, Z和X会被转换成0或1, 具体规则</p></li>
+<li><p>对于非显式的 new[] 所分配的空间, 是否需要显示的 delete, 如 <a class="reference internal" href="#new"><span class="std std-ref">动态数组</span></a> 中的d2</p></li>
+<li><p>队列的 <a class="reference internal" href="#pop-front-pop-back"><span class="std std-ref">pop_front 和 pop_back</span></a> 是否需要加 ()</p></li>
 </ol>
 <dl class="footnote brackets">
-<dt class="label" id="id10"><span class="brackets"><a class="fn-backref" href="#id1">1</a></span></dt>
+<dt class="label" id="id15"><span class="brackets"><a class="fn-backref" href="#id1">1</a></span></dt>
 <dd><p>《SystemVerilog验证测试平台编写指南》</p>
+</dd>
+<dt class="label" id="id16"><span class="brackets"><a class="fn-backref" href="#id10">2</a></span></dt>
+<dd><p>在队列的最前面和最后面存取数据非常方便, 因而操作速度也最快</p>
 </dd>
 </dl>
 </div>

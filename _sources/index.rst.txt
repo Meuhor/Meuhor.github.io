@@ -12,9 +12,4 @@ Welcome to Handnotes's documentation!
    verilog/index
    systemverilog/index
 
-Indices and tables
-==================
 
-
-* :ref:`genindex`
-* :ref:`search`
