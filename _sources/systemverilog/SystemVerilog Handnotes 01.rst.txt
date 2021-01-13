@@ -245,7 +245,97 @@ System Verilog Handnotes 01 [#]_
 关联数组
 +++++++++
 
-- 仿真器可以采用树或哈希表的形式来存放关联数组，但有一定的额外开销
+- 仿真器可以采用树或哈希表的形式来存放关联数组, 但有一定的额外开销
+- 关联数组采用[]加数据类型的形式来声明
+
+.. code-block:: systemverilog
+
+    initial begin
+        bit[63:0] assoc[bit[63:0]], idx;
+        
+        repeat(64) begin
+            assoc[idx] = idx;
+            idx = idx << 1;
+        end
+        
+        // 遍历方法1
+        foreach(assoc[i]) begin
+            $display("assoc[%h] = %h", i, assoc[i]);
+
+        // 遍历方法2
+        if(assoc.first(idx)) begin
+            do 
+                $display("assoc[%h] = %h", idx, assoc[idx]);
+            while(assoc.next(idx));
+        end
+
+        // 找到并删除第一个元素
+        assoc.first(idx);
+        assoc.delete(idx);
+        $display("The array now has %0d elements", assoc.num);
+    end
+
+- 当关联数组的元素稀疏分布时, for 循环不能遍历, 需要用 foreach 或 while
+- 可以适用字符串作为关联数组的索引(类似于字典)
+
+.. code-block:: systemverilog
+
+    /* switch.txt:
+        42 min_address
+        1942 max_address
+    */
+
+    int switch[string], min_address, max_address;
+    inital begin
+        int i, r, file;
+        string s;
+        file = $fopen("switch.txt", "r");
+        while(!feof(file)) begin
+            r = $fscanf(file, "%d %s", i, s);
+        end
+        $fclose(file);
+
+        min_address = switch["min_address"];
+        if(switch.exists("max_address"))
+            max_address = switch["max_address"];
+        else
+            max_address = 1000;
+        end
+
+        foreach (switch[i])
+            $display("switch[%s] = %0d", s, switch[s]);
+    end
+
+
+链表
++++++++++
+
+- 类似 C++ 的 STL 中的列表容器, 推荐使用队列而非链表
+
+
+数组的方法
+++++++++++++
+
+- sum, product, and, or, xor 等方法可以用于缩减数组, 使用时需要注意结果的位宽, 这些方法产生的结果的默认位宽与数组的位宽相同(考虑溢出的问题, 考虑类型提升, 如 array.sum + 32'd0, 将结果转换为32位, 或利用 with 表达式)
+- 抽取数组中的随机元素, 对于定宽数组, 队列, 动态数组和关联数组, 可以使用 $urandom_range($size(array) - 1) 获取 "index", 队列和动态数组还可以用 $urandom_range(array.size() - 1) 获取 "index"
+
+.. code-block:: systemverilog
+
+    // 从关联数组中随机抽取第element个数据, 对于字符串索引, 将索引的类型替换成 string 即可
+    int aa[int], rand_idx, element, count;
+    element = $urandom_range(aa.size() - 1);
+    foreach (aa[i]) 
+        if(count++ == element) begin
+            rand_idx = i;
+        break;
+    end
+
+    display("%0d element aa[%0d] = %0d", element, rand_idx, aa[rand_idx]);
+
+- 需要注意, 从以上可见, 对于关联数组(分布未知的情况下), 只有通过遍历才能得到第 n 个数
+
+
+
 
 问题
 ######

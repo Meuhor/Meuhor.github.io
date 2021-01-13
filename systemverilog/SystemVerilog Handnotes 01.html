@@ -90,8 +90,8 @@
 <li class="toctree-l4"><a class="reference internal" href="#id4">数据类型</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#id13">问题</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#id14">数据类型</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id15">问题</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id16">数据类型</a></li>
 </ul>
 </li>
 </ul>
@@ -166,7 +166,7 @@
            <div itemprop="articleBody">
             
   <div class="section" id="system-verilog-handnotes-01">
-<h1>System Verilog Handnotes 01 <a class="footnote-reference brackets" href="#id16" id="id1">1</a><a class="headerlink" href="#system-verilog-handnotes-01" title="Permalink to this headline">¶</a></h1>
+<h1>System Verilog Handnotes 01 <a class="footnote-reference brackets" href="#id18" id="id1">1</a><a class="headerlink" href="#system-verilog-handnotes-01" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="id2">
 <h2>笔记<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="id3">
@@ -453,7 +453,7 @@
 </div></blockquote>
 </div>
 <div class="section" id="id11">
-<h4>队列 <a class="footnote-reference brackets" href="#id17" id="id10">2</a><a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h4>
+<h4>队列 <a class="footnote-reference brackets" href="#id19" id="id10">2</a><a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h4>
 <ul class="simple">
 <li><p>队列下标使用 [$] 表示, 元素编号为0到$</p></li>
 <li><p>不要对队列使用 new[]</p></li>
@@ -501,27 +501,113 @@
 <div class="section" id="id12">
 <h4>关联数组<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h4>
 <ul class="simple">
-<li><p>仿真器可以采用树或哈希表的形式来存放关联数组，但有一定的额外开销</p></li>
+<li><p>仿真器可以采用树或哈希表的形式来存放关联数组, 但有一定的额外开销</p></li>
+<li><p>关联数组采用[]加数据类型的形式来声明</p></li>
+</ul>
+<div class="highlight-systemverilog notranslate"><div class="highlight"><pre><span></span><span class="k">initial</span> <span class="k">begin</span>
+    <span class="kt">bit</span><span class="p">[</span><span class="mi">63</span><span class="o">:</span><span class="mi">0</span><span class="p">]</span> <span class="n">assoc</span><span class="p">[</span><span class="kt">bit</span><span class="p">[</span><span class="mi">63</span><span class="o">:</span><span class="mi">0</span><span class="p">]],</span> <span class="n">idx</span><span class="p">;</span>
+
+    <span class="k">repeat</span><span class="p">(</span><span class="mi">64</span><span class="p">)</span> <span class="k">begin</span>
+        <span class="n">assoc</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">idx</span><span class="p">;</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="n">idx</span> <span class="o">&lt;&lt;</span> <span class="mi">1</span><span class="p">;</span>
+    <span class="k">end</span>
+
+    <span class="c1">// 遍历方法1</span>
+    <span class="k">foreach</span><span class="p">(</span><span class="n">assoc</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="k">begin</span>
+        <span class="p">$</span><span class="n">display</span><span class="p">(</span><span class="s">&quot;assoc[%h] = %h&quot;</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">assoc</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
+
+    <span class="c1">// 遍历方法2</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">assoc</span><span class="p">.</span><span class="n">first</span><span class="p">(</span><span class="n">idx</span><span class="p">))</span> <span class="k">begin</span>
+        <span class="k">do</span>
+            <span class="p">$</span><span class="n">display</span><span class="p">(</span><span class="s">&quot;assoc[%h] = %h&quot;</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="n">assoc</span><span class="p">[</span><span class="n">idx</span><span class="p">]);</span>
+        <span class="k">while</span><span class="p">(</span><span class="n">assoc</span><span class="p">.</span><span class="n">next</span><span class="p">(</span><span class="n">idx</span><span class="p">));</span>
+    <span class="k">end</span>
+
+    <span class="c1">// 找到并删除第一个元素</span>
+    <span class="n">assoc</span><span class="p">.</span><span class="n">first</span><span class="p">(</span><span class="n">idx</span><span class="p">);</span>
+    <span class="n">assoc</span><span class="p">.</span><span class="n">delete</span><span class="p">(</span><span class="n">idx</span><span class="p">);</span>
+    <span class="p">$</span><span class="n">display</span><span class="p">(</span><span class="s">&quot;The array now has %0d elements&quot;</span><span class="p">,</span> <span class="n">assoc</span><span class="p">.</span><span class="n">num</span><span class="p">);</span>
+<span class="k">end</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>当关联数组的元素稀疏分布时, for 循环不能遍历, 需要用 foreach 或 while</p></li>
+<li><p>可以适用字符串作为关联数组的索引(类似于字典)</p></li>
+</ul>
+<div class="highlight-systemverilog notranslate"><div class="highlight"><pre><span></span><span class="cm">/* switch.txt:</span>
+<span class="cm">    42 min_address</span>
+<span class="cm">    1942 max_address</span>
+<span class="cm">*/</span>
+
+<span class="kt">int</span> <span class="n">switch</span><span class="p">[</span><span class="kt">string</span><span class="p">],</span> <span class="n">min_address</span><span class="p">,</span> <span class="n">max_address</span><span class="p">;</span>
+<span class="n">inital</span> <span class="k">begin</span>
+    <span class="kt">int</span> <span class="n">i</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">file</span><span class="p">;</span>
+    <span class="kt">string</span> <span class="n">s</span><span class="p">;</span>
+    <span class="n">file</span> <span class="o">=</span> <span class="p">$</span><span class="n">fopen</span><span class="p">(</span><span class="s">&quot;switch.txt&quot;</span><span class="p">,</span> <span class="s">&quot;r&quot;</span><span class="p">);</span>
+    <span class="k">while</span><span class="p">(</span><span class="o">!</span><span class="n">feof</span><span class="p">(</span><span class="n">file</span><span class="p">))</span> <span class="k">begin</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="p">$</span><span class="n">fscanf</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="s">&quot;%d %s&quot;</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">s</span><span class="p">);</span>
+    <span class="k">end</span>
+    <span class="p">$</span><span class="n">fclose</span><span class="p">(</span><span class="n">file</span><span class="p">);</span>
+
+    <span class="n">min_address</span> <span class="o">=</span> <span class="n">switch</span><span class="p">[</span><span class="s">&quot;min_address&quot;</span><span class="p">];</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">switch</span><span class="p">.</span><span class="n">exists</span><span class="p">(</span><span class="s">&quot;max_address&quot;</span><span class="p">))</span>
+        <span class="n">max_address</span> <span class="o">=</span> <span class="n">switch</span><span class="p">[</span><span class="s">&quot;max_address&quot;</span><span class="p">];</span>
+    <span class="k">else</span>
+        <span class="n">max_address</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">;</span>
+    <span class="k">end</span>
+
+    <span class="k">foreach</span> <span class="p">(</span><span class="n">switch</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="p">$</span><span class="n">display</span><span class="p">(</span><span class="s">&quot;switch[%s] = %0d&quot;</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">switch</span><span class="p">[</span><span class="n">s</span><span class="p">]);</span>
+<span class="k">end</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id13">
+<h4>链表<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h4>
+<ul class="simple">
+<li><p>类似 C++ 的 STL 中的列表容器, 推荐使用队列而非链表</p></li>
+</ul>
+</div>
+<div class="section" id="id14">
+<h4>数组的方法<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h4>
+<ul class="simple">
+<li><p>sum, product, and, or, xor 等方法可以用于缩减数组, 使用时需要注意结果的位宽, 这些方法产生的结果的默认位宽与数组的位宽相同(考虑溢出的问题, 考虑类型提升, 如 array.sum + 32’d0, 将结果转换为32位, 或利用 with 表达式)</p></li>
+<li><p>抽取数组中的随机元素, 对于定宽数组, 队列, 动态数组和关联数组, 可以使用 $urandom_range($size(array) - 1) 获取 “index”, 队列和动态数组还可以用 $urandom_range(array.size() - 1) 获取 “index”</p></li>
+</ul>
+<div class="highlight-systemverilog notranslate"><div class="highlight"><pre><span></span><span class="c1">// 从关联数组中随机抽取第element个数据, 对于字符串索引, 将索引的类型替换成 string 即可</span>
+<span class="kt">int</span> <span class="n">aa</span><span class="p">[</span><span class="kt">int</span><span class="p">],</span> <span class="n">rand_idx</span><span class="p">,</span> <span class="n">element</span><span class="p">,</span> <span class="n">count</span><span class="p">;</span>
+<span class="n">element</span> <span class="o">=</span> <span class="p">$</span><span class="n">urandom_range</span><span class="p">(</span><span class="n">aa</span><span class="p">.</span><span class="n">size</span><span class="p">()</span> <span class="o">-</span> <span class="mi">1</span><span class="p">);</span>
+<span class="k">foreach</span> <span class="p">(</span><span class="n">aa</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">count</span><span class="o">++</span> <span class="o">==</span> <span class="n">element</span><span class="p">)</span> <span class="k">begin</span>
+        <span class="n">rand_idx</span> <span class="o">=</span> <span class="n">i</span><span class="p">;</span>
+    <span class="k">break</span><span class="p">;</span>
+<span class="k">end</span>
+
+<span class="n">display</span><span class="p">(</span><span class="s">&quot;%0d element aa[%0d] = %0d&quot;</span><span class="p">,</span> <span class="n">element</span><span class="p">,</span> <span class="n">rand_idx</span><span class="p">,</span> <span class="n">aa</span><span class="p">[</span><span class="n">rand_idx</span><span class="p">]);</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>需要注意, 从以上可见, 对于关联数组(分布未知的情况下), 只有通过遍历才能得到第 n 个数</p></li>
 </ul>
 </div>
 </div>
 </div>
-<div class="section" id="id13">
-<h2>问题<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id14">
-<h3>数据类型<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h3>
 <div class="section" id="id15">
-<h4>变量类型<a class="headerlink" href="#id15" title="Permalink to this headline">¶</a></h4>
+<h2>问题<a class="headerlink" href="#id15" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id16">
+<h3>数据类型<a class="headerlink" href="#id16" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id17">
+<h4>变量类型<a class="headerlink" href="#id17" title="Permalink to this headline">¶</a></h4>
 <ol class="arabic simple">
 <li><p>四状态到二状态转换时, Z和X会被转换成0或1, 具体规则</p></li>
 <li><p>对于非显式的 new[] 所分配的空间, 是否需要显示的 delete, 如 <a class="reference internal" href="#new"><span class="std std-ref">动态数组</span></a> 中的d2</p></li>
 <li><p>队列的 <a class="reference internal" href="#pop-front-pop-back"><span class="std std-ref">pop_front 和 pop_back</span></a> 是否需要加 ()</p></li>
 </ol>
 <dl class="footnote brackets">
-<dt class="label" id="id16"><span class="brackets"><a class="fn-backref" href="#id1">1</a></span></dt>
+<dt class="label" id="id18"><span class="brackets"><a class="fn-backref" href="#id1">1</a></span></dt>
 <dd><p>《SystemVerilog验证测试平台编写指南》</p>
 </dd>
-<dt class="label" id="id17"><span class="brackets"><a class="fn-backref" href="#id10">2</a></span></dt>
+<dt class="label" id="id19"><span class="brackets"><a class="fn-backref" href="#id10">2</a></span></dt>
 <dd><p>在队列的最前面和最后面存取数据非常方便, 因而操作速度也最快</p>
 </dd>
 </dl>
