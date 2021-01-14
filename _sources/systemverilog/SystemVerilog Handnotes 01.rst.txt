@@ -286,7 +286,7 @@ System Verilog Handnotes 01 [#]_
     */
 
     int switch[string], min_address, max_address;
-    inital begin
+    initial begin
         int i, r, file;
         string s;
         file = $fopen("switch.txt", "r");
@@ -333,6 +333,85 @@ System Verilog Handnotes 01 [#]_
     display("%0d element aa[%0d] = %0d", element, rand_idx, aa[rand_idx]);
 
 - 需要注意, 从以上可见, 对于关联数组(分布未知的情况下), 只有通过遍历才能得到第 n 个数
+- 数组定位方法: min(), max(), unique(), 这些方法仍返回一个数组
+
+.. code-block:: systemverilog
+
+    int f[6] = '{1, 6, 2, 6, 8, 6};
+    int d[] = '{2, 4, 6, 8, 10};
+    int q[$] = {1, 3, 5, 7}, tq[$]; // 注意tq是队列(数组)
+
+    tq = q.min(); // {1}
+    tq = d.max(); // {10}
+    tq = f.unique(); // {1, 6, 2, 8}
+
+- find 与 with
+
+.. code-block:: systemverilog
+
+    int d[] = '{9, 1, 8, 3, 4, 4}, tq[$];
+
+    // 找出所有大于3的元素
+    tq = d.find with (item > 3); // {9, 8, 4, 4}
+    // 等效于
+    foreach (d[i]) 
+        if(d[i] > 3)
+            tq.push_back(d[i]);
+
+    tq = d.find_index with (item > 3); // {0, 2, 4, 5}
+    tq = d.find_first with (item > 99); // {}
+    tq = d.find_first_index with (item == 8); // {2}
+    tq = d.find_last with (item == 4); // {4}
+    tq = d.find_last_index with (item == 4); // {5}
+
+- item 被成为重复参数, 为缺省表示, 如使用其他参数, 可将其置于数组方法列表中
+
+.. code-block:: systemverilog
+
+    tq = d.find_first with (item == 4);
+    tq = d.find_first() with (item == 4);
+    tq = d.find_first(item) with (item == 4);
+    tq = d.find_first(x) with (x == 4);
+
+- with 与 数组缩减方法, 缩减方法会逐个将 item 的值带入表达式, 然后缩减表达式的返回值
+
+.. code-block:: systemverilog
+
+    int count, total, d[] = '{9, 1, 8, 3, 4, 4}; // 注意 count, total 是 int
+    
+    count = d.sum with (item > 7); // count = 2, 表达式2次返回了1(真)
+    total = d.sum with ((item > 7) * item); // total = 17 = 9 + 8, 表达式在 item = 9 和 item = 8 时分别返回了9和8
+    count = d.sum with (item < 8); // count = 4, 表达式4次返回了1(真)
+    total = d.sum with (item < 8 ? item : 0); // total = 12 = 1 + 3 + 4 + 4, 表达式在 item = 1, 3, 4, 4时分别返回了1, 3, 4, 4
+    count = d.sum with (item == 4); // count = 2, 表达式2次返回了1(真)
+
+- 数组的排序, reverse 和 shuffle (随机排序)方法不能使用 with 语句, 其作用范围是整个数组, **数组排序方法直接对原数组进行操作, 数组定位方法返回新的数组, 数组约简方法返回一个值**
+
+.. code-block:: systemverilog
+
+    int d[] = '{9, 1, 8, 3, 4, 4};
+    d.reverse(); // '{4, 4, 3, 8, 1, 9}
+    d.sort(); // '{1, 3, 4, 4, 8, 9}
+    d.rsort(); // '{9, 8, 4, 4, 3, 1}
+    d.shuffle(); // '{9, 4, 3, 8, 1, 4}
+
+    // 结构数组的排序
+    struct packed {byte red, green, blue;} c[];
+    initial begin
+        c = new[100];
+        foreach (c[i])
+            c[i] = $urandom;
+        c.sort with (item.red); // 只根据 red 部分进行排序
+        c.sort(x) with ((x.green, x.blue)); // 先根据 green 排序, 后根据 blue 排序
+    end
+
+- 使用数组定位方法建立计分板
+
+
+
+
+
+    
 
 
 
@@ -349,6 +428,7 @@ System Verilog Handnotes 01 [#]_
 #. 四状态到二状态转换时, Z和X会被转换成0或1, 具体规则
 #. 对于非显式的 new[] 所分配的空间, 是否需要显示的 delete, 如 :ref:`动态数组 <非显式new操作的删除>` 中的d2
 #. 队列的 :ref:`pop_front 和 pop_back <队列的 pop_front 和 pop_back>` 是否需要加 ()
+#. int 和 integer 的区别
 
 .. footnotes
 .. [#] 《SystemVerilog验证测试平台编写指南》
