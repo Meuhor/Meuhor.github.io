@@ -279,7 +279,7 @@
 <li><p><input checked=""  type="checkbox"> 文件头描述</p></li>
 <li><p><input checked=""  type="checkbox"> 每行应限制在80(72)个字符</p></li>
 <li><p><input checked=""  type="checkbox"> 输出驱动的强度都等于平均的触发器的驱动强度</p></li>
-<li><p><input checked=""  type="checkbox"> function与task：function可以理解为一个组合逻辑块(一个或多个表达式)的抽象，其必须有一个或以上的input，其返回值便是逻辑块的输出。故function内部不应当含有非阻塞或过程连续赋值语句(procedual continuous assignment，包括assign/deassign和force/release);task则是一个过程块的抽象，所以task可以包含组合逻辑(function)或时序逻辑</p></li>
+<li><p><input checked=""  type="checkbox"> function与task：function可以理解为一个组合逻辑块(一个或多个表达式)的抽象，其必须有一个或以上的input，其返回值便是逻辑块的输出。故function内部不应当含有非阻塞或过程连续赋值语句(procedual continuous assignment，包括 <strong>assign/deassign和force/release, 任何的时间控制语句，即任何用＃、&#64;、或wait来标识的语句</strong> );task则是一个过程块的抽象，所以task可以包含组合逻辑(function)或时序逻辑</p></li>
 </ol>
 <div class="highlight-verilog notranslate"><div class="highlight"><pre><span></span><span class="k">function</span> <span class="p">[</span><span class="nl">width0:</span> <span class="mh">0</span><span class="p">]</span> <span class="n">function_name</span> <span class="p">(</span><span class="k">input</span> <span class="p">[</span><span class="nl">width1:</span> <span class="mh">0</span><span class="p">]</span> <span class="n">input_name</span><span class="p">);</span>
 <span class="k">begin</span>
