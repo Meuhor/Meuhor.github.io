@@ -203,10 +203,10 @@ System Verilog Handnotes 01 [#]_
 +++++++++
 
 - 队列下标使用 [$] 表示, 元素编号为0到$
-- 不要对队列使用 new[]
 
 .. _`队列的 pop_front 和 pop_back`:
-    
+
+- 不要对队列使用 new[]
     .. code-block:: systemverilog
 
         int j, q2[$] = {3, 4}, q[$] = {0, 2, 5}; // 队列初始化不使用'{}而使用{}
@@ -224,7 +224,6 @@ System Verilog Handnotes 01 [#]_
         end
 
 - 使用 [$:2] 或 [2:$] 的方式来访问队列
-
     .. code-block:: systemverilog 
         
         int j = 1, q2[$] = {3, 4}, q[$] = {0, 2, 5};
@@ -247,64 +246,62 @@ System Verilog Handnotes 01 [#]_
 
 - 仿真器可以采用树或哈希表的形式来存放关联数组, 但有一定的额外开销
 - 关联数组采用[]加数据类型的形式来声明
-
-.. code-block:: systemverilog
-
-    initial begin
-        bit[63:0] assoc[bit[63:0]], idx;
-        
-        repeat(64) begin
-            assoc[idx] = idx;
-            idx = idx << 1;
+    .. code-block:: systemverilog
+    
+        initial begin
+            bit[63:0] assoc[bit[63:0]], idx;
+            
+            repeat(64) begin
+                assoc[idx] = idx;
+                idx = idx << 1;
+            end
+            
+            // 遍历方法1
+            foreach(assoc[i]) begin
+                $display("assoc[%h] = %h", i, assoc[i]);
+    
+            // 遍历方法2
+            if(assoc.first(idx)) begin
+                do 
+                    $display("assoc[%h] = %h", idx, assoc[idx]);
+                while(assoc.next(idx));
+            end
+    
+            // 找到并删除第一个元素
+            assoc.first(idx);
+            assoc.delete(idx);
+            $display("The array now has %0d elements", assoc.num);
         end
-        
-        // 遍历方法1
-        foreach(assoc[i]) begin
-            $display("assoc[%h] = %h", i, assoc[i]);
-
-        // 遍历方法2
-        if(assoc.first(idx)) begin
-            do 
-                $display("assoc[%h] = %h", idx, assoc[idx]);
-            while(assoc.next(idx));
-        end
-
-        // 找到并删除第一个元素
-        assoc.first(idx);
-        assoc.delete(idx);
-        $display("The array now has %0d elements", assoc.num);
-    end
 
 - 当关联数组的元素稀疏分布时, for 循环不能遍历, 需要用 foreach 或 while
 - 可以适用字符串作为关联数组的索引(类似于字典)
-
-.. code-block:: systemverilog
-
-    /* switch.txt:
-        42 min_address
-        1942 max_address
-    */
-
-    int switch[string], min_address, max_address;
-    initial begin
-        int i, r, file;
-        string s;
-        file = $fopen("switch.txt", "r");
-        while(!feof(file)) begin
-            r = $fscanf(file, "%d %s", i, s);
+    .. code-block:: systemverilog
+    
+        /* switch.txt:
+            42 min_address
+            1942 max_address
+        */
+    
+        int switch[string], min_address, max_address;
+        initial begin
+            int i, r, file;
+            string s;
+            file = $fopen("switch.txt", "r");
+            while(!feof(file)) begin
+                r = $fscanf(file, "%d %s", i, s);
+            end
+            $fclose(file);
+    
+            min_address = switch["min_address"];
+            if(switch.exists("max_address"))
+                max_address = switch["max_address"];
+            else
+                max_address = 1000;
+            end
+    
+            foreach (switch[i])
+                $display("switch[%s] = %0d", s, switch[s]);
         end
-        $fclose(file);
-
-        min_address = switch["min_address"];
-        if(switch.exists("max_address"))
-            max_address = switch["max_address"];
-        else
-            max_address = 1000;
-        end
-
-        foreach (switch[i])
-            $display("switch[%s] = %0d", s, switch[s]);
-    end
 
 
 链表
@@ -318,94 +315,174 @@ System Verilog Handnotes 01 [#]_
 
 - sum, product, and, or, xor 等方法可以用于缩减数组, 使用时需要注意结果的位宽, 这些方法产生的结果的默认位宽与数组的位宽相同(考虑溢出的问题, 考虑类型提升, 如 array.sum + 32'd0, 将结果转换为32位, 或利用 with 表达式)
 - 抽取数组中的随机元素, 对于定宽数组, 队列, 动态数组和关联数组, 可以使用 $urandom_range($size(array) - 1) 获取 "index", 队列和动态数组还可以用 $urandom_range(array.size() - 1) 获取 "index"
-
-.. code-block:: systemverilog
-
-    // 从关联数组中随机抽取第element个数据, 对于字符串索引, 将索引的类型替换成 string 即可
-    int aa[int], rand_idx, element, count;
-    element = $urandom_range(aa.size() - 1);
-    foreach (aa[i]) 
-        if(count++ == element) begin
-            rand_idx = i;
-        break;
-    end
-
-    display("%0d element aa[%0d] = %0d", element, rand_idx, aa[rand_idx]);
+    .. code-block:: systemverilog
+    
+        // 从关联数组中随机抽取第element个数据, 对于字符串索引, 将索引的类型替换成 string 即可
+        int aa[int], rand_idx, element, count;
+        element = $urandom_range(aa.size() - 1);
+        foreach (aa[i]) 
+            if(count++ == element) begin
+                rand_idx = i;
+            break;
+        end
+    
+        display("%0d element aa[%0d] = %0d", element, rand_idx, aa[rand_idx]);
 
 - 需要注意, 从以上可见, 对于关联数组(分布未知的情况下), 只有通过遍历才能得到第 n 个数
 - 数组定位方法: min(), max(), unique(), 这些方法仍返回一个数组
-
-.. code-block:: systemverilog
-
-    int f[6] = '{1, 6, 2, 6, 8, 6};
-    int d[] = '{2, 4, 6, 8, 10};
-    int q[$] = {1, 3, 5, 7}, tq[$]; // 注意tq是队列(数组)
-
-    tq = q.min(); // {1}
-    tq = d.max(); // {10}
-    tq = f.unique(); // {1, 6, 2, 8}
+    .. code-block:: systemverilog
+    
+        int f[6] = '{1, 6, 2, 6, 8, 6};
+        int d[] = '{2, 4, 6, 8, 10};
+        int q[$] = {1, 3, 5, 7}, tq[$]; // 注意tq是队列(数组)
+    
+        tq = q.min(); // {1}
+        tq = d.max(); // {10}
+        tq = f.unique(); // {1, 6, 2, 8}
 
 - find 与 with
-
-.. code-block:: systemverilog
-
-    int d[] = '{9, 1, 8, 3, 4, 4}, tq[$];
-
-    // 找出所有大于3的元素
-    tq = d.find with (item > 3); // {9, 8, 4, 4}
-    // 等效于
-    foreach (d[i]) 
-        if(d[i] > 3)
-            tq.push_back(d[i]);
-
-    tq = d.find_index with (item > 3); // {0, 2, 4, 5}
-    tq = d.find_first with (item > 99); // {}
-    tq = d.find_first_index with (item == 8); // {2}
-    tq = d.find_last with (item == 4); // {4}
-    tq = d.find_last_index with (item == 4); // {5}
+    .. code-block:: systemverilog
+    
+        int d[] = '{9, 1, 8, 3, 4, 4}, tq[$];
+    
+        // 找出所有大于3的元素
+        tq = d.find with (item > 3); // {9, 8, 4, 4}
+        // 等效于
+        foreach (d[i]) 
+            if(d[i] > 3)
+                tq.push_back(d[i]);
+    
+        tq = d.find_index with (item > 3); // {0, 2, 4, 5}
+        tq = d.find_first with (item > 99); // {}
+        tq = d.find_first_index with (item == 8); // {2}
+        tq = d.find_last with (item == 4); // {4}
+        tq = d.find_last_index with (item == 4); // {5}
 
 - item 被成为重复参数, 为缺省表示, 如使用其他参数, 可将其置于数组方法列表中
-
-.. code-block:: systemverilog
-
-    tq = d.find_first with (item == 4);
-    tq = d.find_first() with (item == 4);
-    tq = d.find_first(item) with (item == 4);
-    tq = d.find_first(x) with (x == 4);
+    .. code-block:: systemverilog
+    
+        tq = d.find_first with (item == 4);
+        tq = d.find_first() with (item == 4);
+        tq = d.find_first(item) with (item == 4);
+        tq = d.find_first(x) with (x == 4);
 
 - with 与 数组缩减方法, 缩减方法会逐个将 item 的值带入表达式, 然后缩减表达式的返回值
-
-.. code-block:: systemverilog
-
-    int count, total, d[] = '{9, 1, 8, 3, 4, 4}; // 注意 count, total 是 int
+    .. code-block:: systemverilog
     
-    count = d.sum with (item > 7); // count = 2, 表达式2次返回了1(真)
-    total = d.sum with ((item > 7) * item); // total = 17 = 9 + 8, 表达式在 item = 9 和 item = 8 时分别返回了9和8
-    count = d.sum with (item < 8); // count = 4, 表达式4次返回了1(真)
-    total = d.sum with (item < 8 ? item : 0); // total = 12 = 1 + 3 + 4 + 4, 表达式在 item = 1, 3, 4, 4时分别返回了1, 3, 4, 4
-    count = d.sum with (item == 4); // count = 2, 表达式2次返回了1(真)
+        int count, total, d[] = '{9, 1, 8, 3, 4, 4}; // 注意 count, total 是 int
+        
+        count = d.sum with (item > 7); // count = 2, 表达式2次返回了1(真)
+        total = d.sum with ((item > 7) * item); // total = 17 = 9 + 8, 表达式在 item = 9 和 item = 8 时分别返回了9和8
+        count = d.sum with (item < 8); // count = 4, 表达式4次返回了1(真)
+        total = d.sum with (item < 8 ? item : 0); // total = 12 = 1 + 3 + 4 + 4, 表达式在 item = 1, 3, 4, 4时分别返回了1, 3, 4, 4
+        count = d.sum with (item == 4); // count = 2, 表达式2次返回了1(真)
 
 - 数组的排序, reverse 和 shuffle (随机排序)方法不能使用 with 语句, 其作用范围是整个数组, **数组排序方法直接对原数组进行操作, 数组定位方法返回新的数组, 数组约简方法返回一个值**
-
-.. code-block:: systemverilog
-
-    int d[] = '{9, 1, 8, 3, 4, 4};
-    d.reverse(); // '{4, 4, 3, 8, 1, 9}
-    d.sort(); // '{1, 3, 4, 4, 8, 9}
-    d.rsort(); // '{9, 8, 4, 4, 3, 1}
-    d.shuffle(); // '{9, 4, 3, 8, 1, 4}
-
-    // 结构数组的排序
-    struct packed {byte red, green, blue;} c[];
-    initial begin
-        c = new[100];
-        foreach (c[i])
-            c[i] = $urandom;
-        c.sort with (item.red); // 只根据 red 部分进行排序
-        c.sort(x) with ((x.green, x.blue)); // 先根据 green 排序, 后根据 blue 排序
-    end
+    .. code-block:: systemverilog
+    
+        int d[] = '{9, 1, 8, 3, 4, 4};
+        d.reverse(); // '{4, 4, 3, 8, 1, 9}
+        d.sort(); // '{1, 3, 4, 4, 8, 9}
+        d.rsort(); // '{9, 8, 4, 4, 3, 1}
+        d.shuffle(); // '{9, 4, 3, 8, 1, 4}
+    
+        // 结构数组的排序
+        struct packed {byte red, green, blue;} c[];
+        initial begin
+            c = new[100];
+            foreach (c[i])
+                c[i] = $urandom;
+            c.sort with (item.red); // 只根据 red 部分进行排序
+            c.sort(x) with ((x.green, x.blue)); // 先根据 green 排序, 后根据 blue 排序
+        end
 
 - 使用数组定位方法建立计分板
+    .. code-block:: systemverilog
+    
+        typedef struct packed
+        {
+            bit [7:0] addr;
+            bit [7:0] pr;
+            bit [15:0] data;
+        } Packet;
+    
+        Packet scb[$];
+    
+        function void check_addr(bit [7:0] addr);
+            int intq[$];
+            intq = scb.find_index with (item.addr == addr);
+            case (intq.size())
+            0: $display("Addr %h not found in scoreboard", addr);
+            1: scb.delete(intq[0]);
+            default:
+                $display("ERROR: Multiple hits for addr %h", addr);
+            endcase
+        endfunction : check_addr
+
+- 合并结构 packed 关键字
+    .. code-block:: systemverilog
+
+        typedef struct packed {bit [7:0] r, g, b;} pixel_p_s; // 占用3字节
+        typedef struct {bit [7:0] r, g, b;} pixel_p_s; // 占用3个字长
+
+
+typedef
++++++++++
+
+- 用 typedef 来创建新的类型, 区别与宏(文本替换)
+    .. code-block:: systemverilog
+
+        // 宏
+        `define OPSIZE 8
+        `define OPREG reg[OPSIZE - 1:0]
+
+        `OPREG op_a, op_b;
+
+        // typedef
+        parameter OPSIZE = 8;
+        typedef reg[OPREG - 1:0] opreg_t;
+        
+        opreg_t op_a, op_b;
+
+        // 定义 unit
+        typedef bit[31:0] uint;
+        typedef int unsigned uint;
+
+        // 定义数组, 推荐将下标(数组长度)放在名称中
+        typedef int fixed_array5[5];
+        fixed_array5 f5;
+
+        initial begin
+            foreach (f5[i])
+                f5[i] = i;
+        end
+
+自定义结构
++++++++++++++++++
+
+- struct 是一个数据集合, 是可综合的
+- struct 的初始化
+    .. code-block:: systemverilog
+        
+        initial begin
+            typedef struct {
+                int a;
+                byte b;
+                shortint c;
+                int d;
+            } my_struct_s;
+            my_struct_s st = '{32'haaaa_aaaa, 8'hbb, 16'hcccc, 32'hdddd_dddd}; 
+            $display("str = %x %x %x %x", st.a, st.b, st.c, st.d);
+        end
+
+- union 联合体
+    .. code-block:: systemverilog
+
+        typedef union {int i; real f;} num_u;
+        num_u un;
+        un.f = 0.0;
+
+
 
 
 
@@ -429,6 +506,11 @@ System Verilog Handnotes 01 [#]_
 #. 对于非显式的 new[] 所分配的空间, 是否需要显示的 delete, 如 :ref:`动态数组 <非显式new操作的删除>` 中的d2
 #. 队列的 :ref:`pop_front 和 pop_back <队列的 pop_front 和 pop_back>` 是否需要加 ()
 #. int 和 integer 的区别
+
+自定义结构
++++++++++++++++++
+
+#. SystemVerilog 中那些结构(数据类型)可以综合, 哪些不可以综合
 
 .. footnotes
 .. [#] 《SystemVerilog验证测试平台编写指南》
